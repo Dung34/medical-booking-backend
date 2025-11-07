@@ -1,0 +1,36 @@
+# 1. Môi trường ảo (Virtual Environment)
+# Đây là thư mục quan trọng nhất cần ignore
+venv/
+/venv/
+*.venv
+.venv/
+
+# 2. File bí mật (Secrets & Config)
+# RẤT QUAN TRỌNG: Chứa mật khẩu database, API keys...
+# Không bao giờ commit file này!!!
+.env
+*.env
+
+# 3. Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 4. Thư mục cài đặt của IDE/Editor
+.idea/
+.vscode/
+
+# 5. File cơ sở dữ liệu (Nếu dùng SQLite để test)
+*.db
+*.sqlite3
+
+# 6. Các file của Hệ điều hành
+.DS_Store
+Thumbs.db
+
+# 7. Build/Package artifacts
+build/
+dist/
+*.egg-info/
+*.egg
