@@ -21,5 +21,8 @@ def get_db():
     db = SessionLocal() # Mở một session mới
     try:
         yield db # Cung cấp session cho API sử dụng
+    except: 
+        db.rollback()
+        raise
     finally:
         db.close()

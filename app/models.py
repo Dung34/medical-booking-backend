@@ -7,7 +7,7 @@ import enum
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from .database import Base  # Import Base từ file database.py
-from .enum import RoleEnum
+from .enum import RoleEnum, GenderEnum
 #-------------
 # 0. Role enum 
 #-------------
@@ -84,7 +84,7 @@ class Patient(Base):
     user_id = Column(Integer, ForeignKey("Users.user_id"), unique=True, nullable=False)
     
     date_of_birth = Column(DATE, nullable=True)
-    gender = Column(Enum('MALE', 'FEMALE', 'OTHER'), nullable=True)
+    gender = Column(Enum(GenderEnum), nullable=True)
     address = Column(TEXT, nullable=True)
 
     # Mối quan hệ ngược lại

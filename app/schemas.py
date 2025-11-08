@@ -1,7 +1,8 @@
-from pydantic import BaseModel, EmailStr,field_validator, Field
+from pydantic import BaseModel, EmailStr,field_validator, Field # type: ignore
 from typing import Optional
+from datetime import date
 import re
-from .enum import RoleEnum
+from .enum import RoleEnum, GenderEnum
 # Schema tao user moi 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -52,3 +53,42 @@ class UserOut(BaseModel):
     class Config:
         from_attributes = True  # Cho phép đọc từ ORM model
         use_enum_values = True # Tra ve PATIENT that vi enum.PATIENT
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+class PatientCreate(BaseModel):
+    gender: Optional[GenderEnum] = None
+    date_of_birth: Optional[date] = None
+    address: Optional[str] = None
+
+class PatientOut(BaseModel):
+    user_id: int
+    gender: str
+    date_of_birth: Optional[date] = None
+    address: Optional[str] = None
+
+    class Config:
+        from_attributes = True 
+class PatientUpdate(BaseModel):
+    date_of_birth: Optional[date] = None
+    gender: Optional[GenderEnum] = None  # (Có thể dùng Enum('MALE', 'FEMALE', 'OTHER'))
+    address: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+class PatientProfileOut(BaseModel):
+    patient_id: int
+    user_id: int
+    date_of_birth: Optional[date] = None
+    gender: Optional[str] = None
+    address: Optional[str] = None
+    
+    # Lồng thông tin User vào hồ sơ
+    user: UserOut 
+
+    class Config:
+        from_attributes = True
+class UserPatientRegister(BaseModel):
+    user_data: UserCreate
+    patient_data: PatientCreate
