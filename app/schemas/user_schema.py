@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr,field_validator, Field # type: ignore
 from typing import Optional
 from datetime import date
 import re
-from .enum import RoleEnum, GenderEnum
+from ..enum import RoleEnum, GenderEnum
 # Schema tao user moi 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -92,3 +92,19 @@ class PatientProfileOut(BaseModel):
 class UserPatientRegister(BaseModel):
     user_data: UserCreate
     patient_data: PatientCreate
+
+class SpecialtyCreate(BaseModel):
+    name: str
+    description: str
+
+class SpecialtyOut(BaseModel):
+    specialty_id: int
+    name: str
+    description: str
+
+class DoctorCreate(BaseModel):
+    user_id: int
+    specialty_id: int
+    bio: Optional[str] = None
+    clinic_address: Optional[str] = None
+

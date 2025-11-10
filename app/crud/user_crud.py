@@ -1,18 +1,18 @@
 from sqlalchemy.orm import Session, joinedload
-from . import models, schemas
+
+from ..schemas import user_schema
+from .. import models
 import bcrypt
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-
-secret = os.getenv('SECRET')
 salt = bcrypt.gensalt()
 def get_password_hash(password: str) -> str:
+    
     hash_password = bcrypt.hashpw(password=password.encode('utf-8'), salt=salt)
     return hash_password.decode('utf-8')
 
-def create_user(db: Session, user: schemas.UserCreate, patient_data: schemas.PatientCreate):
+def create_user(db: Session, user: user_schema.UserCreate, patient_data: user_schema.PatientCreate):
     db_user = models.User(
         email=user.email,
         full_name=user.full_name,
@@ -50,7 +50,7 @@ def get_all_patients(db: Session, skip: int = 0, limit: int = 10):
         joinedload(models.Patient.user)
     ).offset(skip).limit(limit).all()
 
-def update_patient_profile_by_id(db: Session, user_id: int, patient_update: schemas.PatientUpdate):
+def update_patient_profile_by_id(db: Session, user_id: int, patient_update: user_schema.PatientUpdate):
 
     db_patient = db.query(models.Patient).filter(models.Patient.user_id == user_id).first()
 
