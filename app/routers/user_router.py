@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..schemas import user_schema
-
+from ..core.secure import CurrentUser, get_current_user
 from ..crud import user_crud
 from .. import models
 from ..database import get_db
@@ -34,8 +34,8 @@ def register_user(register_data: user_schema.UserPatientRegister, db: Session = 
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
-@router.get("/patients", response_model=List[user_schema.PatientProfileOut], status_code=status.HTTP_200_OK)
-def get_all_patients(db: Session = Depends(get_db), skip: int = 0, limit: int = 10):
+@router.get("/patients",response_model=List[user_schema.PatientProfileOut], status_code=status.HTTP_200_OK)
+async def get_all_patients(db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user),skip: int = 0, limit: int = 10):
     try:
         patients = user_crud.get_all_patients(db=db,skip=skip,limit=limit)
         return patients

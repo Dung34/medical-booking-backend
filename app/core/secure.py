@@ -1,14 +1,17 @@
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta,timezone
+from ..database import get_db
+from ..crud.user_crud import get_user_by_id
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional
 from ..enum import RoleEnum
 import bcrypt
 import os
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session 
 
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -17,6 +20,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+security_scheme = HTTPBearer()
 
 class TokenPayLoad(BaseModel):
     sub: str
@@ -31,7 +35,7 @@ class CurrentUser(BaseModel):
     email: str
     full_name: str
     role: str
-    user_name: str
+   
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -52,36 +56,41 @@ def create_refresh_token(data: dict):
     to_encode.update({"exp": expire, "type" : "refresh"})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(db: Session = Depends(get_db), creds : HTTPAuthorizationCredentials = Depends(security_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"}
+        headers={"Authentication": "Bearer"}
     )
+    
+    token = creds.credentials
     try:
         payload = jwt.decode(token=token, key=SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("user_id")
+        user_id: int = int(payload.get("user_id"))
         email: str = payload.get("email")
         full_name: str = payload.get("full_name")
         role: str = payload.get("role")
-        username: str = payload.get("sub") 
-        if username is None or user_id is None:
+       
+        if user_id is None:
             raise credentials_exception
+        db_user = get_user_by_id(db=db, user_id=user_id)
+
+        if not db_user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nguoi dung nay khong ton tai")
         token_type = payload.get("type")
         if token_type != "access":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token type"
             )
-    except JWTError:
-        raise credentials_exception
+    except JWTError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
     return CurrentUser(
         user_id=user_id,
         email=email,
         full_name=full_name,
-        role=role,
-        username=username
+        role=role
     )
 
 def verify_refresh_token(token: str) -> dict:
@@ -100,8 +109,8 @@ def verify_refresh_token(token: str) -> dict:
         
         return payload
         
-    except JWTError:
+    except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token"
+            detail=str(e)
         )
