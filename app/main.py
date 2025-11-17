@@ -8,7 +8,7 @@ from .database import engine, Base, get_db      # <-- 2. IMPORT ENGINE
 # from .routers import user_router
 from . import models
 from sqlalchemy.orm import Session
-from .routers import user_router, auth_router
+from .routers import user_router, auth_router, specialty_router
 
 # --- 3. TẠO BẢNG TRONG CSDL ---
 # Dòng này sẽ kiểm tra CSDL của bạn (qua 'engine')
@@ -26,6 +26,7 @@ app = FastAPI(
 # --- 2. "MÓC" ROUTER VÀO ỨNG DỤNG ---
 app.include_router(user_router.router)
 app.include_router(auth_router.router)
+app.include_router(specialty_router.router)
 @app.get("/")
 def read_root():
     return {"message": "Chào mừng đến với API Đặt lịch Khám bệnh!"}
